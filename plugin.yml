@@ -1,0 +1,10 @@
+name: LinFood
+description: A /give plugin for food only
+version: 1.0
+
+author: jacklin213
+main: me.jacklin213.linfood.LinFood
+
+commands:
+  LinFood:
+    description: Lists the basic info
