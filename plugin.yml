@@ -8,3 +8,4 @@ main: me.jacklin213.linfood.LinFood
 commands:
   LinFood:
     description: Lists the basic info
+    aliases: lf

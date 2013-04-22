@@ -2,6 +2,7 @@ package me.jacklin213.linfood;
 
 import java.util.logging.Logger;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -19,6 +20,7 @@ public class LinFood extends JavaPlugin{
 	PluginDescriptionFile pdfFile;
 	
 	public LFMessages lfm = new LFMessages(this);
+	public LFFoodManager lffm = new LFFoodManager();
 	
 	@Override
 	public void onEnable(){
@@ -57,24 +59,53 @@ public class LinFood extends JavaPlugin{
 					return true;
 				}
 			}
-			if (args.length == 3){
+			if (args.length >= 2 && args.length < 4){
 				if (sender instanceof Player){
 					Player player = (Player) sender;
 					if (args[0].equalsIgnoreCase("give")){
 						String food = args[1];
-						try {
-							int amount = Integer.parseInt(args[2]);
-							addFoodToInv(sender, player, food, amount);
+						int amount;
+						if (args[2] != ""){
+							try {
+								amount = Integer.parseInt(args[2]);
+								addFoodToInv(sender, player, food, amount);
+								return true;
+							} catch (NumberFormatException nfe){
+								player.sendMessage(lfm.invalidNum);
+								return true;
+							}
+						} else {
+							addFoodToInv(sender, player, food, 1);
 							return true;
-						} catch (NumberFormatException nfe){
-							player.sendMessage(lfm.invalidNum);
 						}
+						
 					} else {
 						sender.sendMessage(lfm.invalidCommand);
 						return true;
 					}
 				} else {
 					sender.sendMessage(lfm.playerOnly);
+					return true;
+				}
+			}
+			if (args.length == 4){
+				if (args[0].equalsIgnoreCase("give")){
+					Player player = Bukkit.getServer().getPlayerExact(args[1]);
+					if (player != null){
+						String food = args[2];
+						try {
+							int amount = Integer.parseInt(args[3]);
+							addFoodToInv(sender, player, food, amount);
+							return true;
+						} catch (NumberFormatException nfe){
+							player.sendMessage(lfm.invalidNum);
+						}
+					} else {
+						sender.sendMessage(lfm.invalidPlayer);
+						return true;
+					}
+				} else {
+					sender.sendMessage(lfm.invalidCommand);
 					return true;
 				}
 			}
@@ -93,11 +124,16 @@ public class LinFood extends JavaPlugin{
 	public void addFoodToInv(CommandSender sender, Player p, String food, int qty){
 		try {
 			PlayerInventory inventory = p.getInventory();
-			Material item = Material.getMaterial(food);
-			if (item.isEdible()){
-				inventory.addItem(new ItemStack(item, qty));
+			Material item = Material.matchMaterial(food);
+			if (item != null){
+				int itemId = item.getId();
+				if (lffm.contains(itemId)){
+					inventory.addItem(new ItemStack(item, qty));
+				} else {
+					sender.sendMessage(lfm.invalidFoodItem);
+				}
 			} else {
-				sender.sendMessage("Invalid Food type");
+				sender.sendMessage(lfm.invalidFoodItem);
 			}
 		} catch (Exception e){
 			e.printStackTrace();

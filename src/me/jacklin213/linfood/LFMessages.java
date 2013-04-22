@@ -12,7 +12,9 @@ public class LFMessages {
 	public String chatPluginName = ChatColor.WHITE + "[" + ChatColor.GREEN + pluginName + ChatColor.WHITE + "] ";
 	public String description = "A /give plugin for food only";
 	public String invalidCommand = ChatColor.RED + "Not a valid command , Do /linfood help";
-	public String invalidNum = ChatColor.RED + "Not a Valid number";
+	public String invalidFoodItem = ChatColor.RED + "Invalid food type";
+	public String invalidNum = ChatColor.RED + "Invalid number";
+	public String invalidPlayer = ChatColor.RED + "Invalid Player";
 	public String playerOnly = ChatColor.RED + "This is a player only Command!";
 	public String permMessage = ChatColor.RED + "You do not have the permissions to use this command!";
 	public String version = "v1.0";
