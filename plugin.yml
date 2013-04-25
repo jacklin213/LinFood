@@ -9,3 +9,25 @@ commands:
   LinFood:
     description: Lists the basic info
     aliases: lf
+    
+permissions:
+  linfood.*:
+    description: Allows all usage of LinFood commands.
+    default: op
+    children:
+      linfood.help: true
+      linfood.give: true
+  linfood.give.*:
+    description: Allows all /lf give commands
+    default: op
+    children:
+      linfood.give: true
+      linfood.give.list: true
+  linfood.give: 
+    description: Allows the /lf give for oneself and others
+    default: op
+  linfood.give.list:
+    description: Allows the listing of all foods.
+  linfood.help:
+    description: Allows the usage of the help command
+    default: op

@@ -42,15 +42,36 @@ public class LinFood extends JavaPlugin{
 					lfm.info(sender);
 					return true;
 				}
-				if (args[0].equalsIgnoreCase("help")){
-					lfm.help(sender, 1);
+				if (args[0].equalsIgnoreCase("give")){
+					lfm.giveCommandHelp(sender);
 					return true;
+				}
+				if (args[0].equalsIgnoreCase("help")){
+					if (sender.hasPermission("linfood.help")){
+						lfm.help(sender, 1);
+						return true;
+					} else {
+						sender.sendMessage(lfm.permMessage);
+						return true;
+					}
 				} else {
 					sender.sendMessage(lfm.invalidCommand);
 					return true;
 				}
 			}
 			if (args.length == 2){
+				if (args[0].equalsIgnoreCase("give")){
+					if (sender.hasPermission("linfood.give.list")){
+						if (args[1].equalsIgnoreCase("list")){
+							String foodNames = lffm.getFoodNames();
+							sender.sendMessage(lfm.chatPluginName + ChatColor.GOLD + "Foods: " + ChatColor.AQUA + foodNames);
+							return true;
+						}
+					} else {
+						sender.sendMessage(lfm.permMessage);
+						return true;
+					}
+				}
 				if (args[0].equalsIgnoreCase("help")){
 					int page = Integer.parseInt(args[1]);
 					lfm.help(sender, page);
@@ -58,50 +79,58 @@ public class LinFood extends JavaPlugin{
 					sender.sendMessage(lfm.invalidCommand);
 					return true;
 				}
-			}
-			if (args.length >= 2 && args.length < 4){
-				if (sender instanceof Player){
-					Player player = (Player) sender;
-					if (args[0].equalsIgnoreCase("give")){
-						String food = args[1];
-						int amount;
-						if (args[2] != ""){
+			} 
+			if (args.length == 3){
+				if (args[0].equalsIgnoreCase("give")){
+					if (sender.hasPermission("linfood.give")){
+						Player player = Bukkit.getServer().getPlayerExact(args[1]);
+						if (player != null){
+							String food = args[2];
 							try {
-								amount = Integer.parseInt(args[2]);
+								int amount = 1;
 								addFoodToInv(sender, player, food, amount);
 								return true;
 							} catch (NumberFormatException nfe){
 								player.sendMessage(lfm.invalidNum);
+								sender.sendMessage(lfm.giveUsage);
 								return true;
 							}
 						} else {
-							addFoodToInv(sender, player, food, 1);
+							sender.sendMessage(lfm.invalidPlayer);
+							sender.sendMessage(lfm.giveUsage);
 							return true;
 						}
-						
 					} else {
-						sender.sendMessage(lfm.invalidCommand);
+						sender.sendMessage(lfm.permMessage);
 						return true;
 					}
 				} else {
-					sender.sendMessage(lfm.playerOnly);
+					sender.sendMessage(lfm.invalidCommand);
 					return true;
 				}
 			}
 			if (args.length == 4){
 				if (args[0].equalsIgnoreCase("give")){
-					Player player = Bukkit.getServer().getPlayerExact(args[1]);
-					if (player != null){
-						String food = args[2];
-						try {
-							int amount = Integer.parseInt(args[3]);
-							addFoodToInv(sender, player, food, amount);
+					if (sender.hasPermission("linfood.give")){
+						Player player = Bukkit.getServer().getPlayerExact(args[1]);
+						if (player != null){
+							String food = args[2];
+							try {
+								int amount = Integer.parseInt(args[3]);
+								addFoodToInv(sender, player, food, amount);
+								return true;
+							} catch (NumberFormatException nfe){
+								player.sendMessage(lfm.invalidNum);
+								player.sendMessage(lfm.giveUsage);
+								return true;
+							}
+						} else {
+							sender.sendMessage(lfm.invalidPlayer);
+							sender.sendMessage(lfm.giveUsage);
 							return true;
-						} catch (NumberFormatException nfe){
-							player.sendMessage(lfm.invalidNum);
 						}
 					} else {
-						sender.sendMessage(lfm.invalidPlayer);
+						sender.sendMessage(lfm.permMessage);
 						return true;
 					}
 				} else {
@@ -126,9 +155,21 @@ public class LinFood extends JavaPlugin{
 			PlayerInventory inventory = p.getInventory();
 			Material item = Material.matchMaterial(food);
 			if (item != null){
+				String itemName = item.name();
 				int itemId = item.getId();
 				if (lffm.contains(itemId)){
 					inventory.addItem(new ItemStack(item, qty));
+					lfm.giveMessage(sender, itemName, qty, p);
+				} else if ((item == Material.POTATO) || (item.getId() == 392)) {
+					String potato = "POTATO";
+					int potatoId = 392;
+					inventory.addItem(new ItemStack(potatoId, qty));
+					lfm.giveMessage(sender, potato, qty, p);
+				} else if ((item == Material.CARROT) || (item.getId() == 391)) {
+					String carrot = "CARROT";
+					int carrotId = 391;
+					inventory.addItem(new ItemStack(carrotId, qty));
+					lfm.giveMessage(sender, carrot, qty, p);
 				} else {
 					sender.sendMessage(lfm.invalidFoodItem);
 				}
@@ -140,24 +181,4 @@ public class LinFood extends JavaPlugin{
 			sender.sendMessage(ChatColor.RED + "Error, Please Check you have typed a valid Food or Amount");
 		}
 	}	
-	
-	/*02:01	Didz	My guess is that youre Material.getMaterial(String) call is returning null
-02:01	Didz	since "carrot" is not a valid name in the Material enum
-02:01	Didz	use matchMaterial instead, and make sure to check if it's null when it returns
-02:02	Didz	s/youre/your/
-02:03		_Rogue_ detects bad regexp
-02:03	jacklin213	kk
-02:03	jacklin213	wat happens if they type a number
-02:03	jacklin213	like the id for carrot
-02:03	Didz	it will return null
-02:03	_Rogue_	if it can't match it re-
-02:03	_Rogue_	
-02:03		*** ModMasta quit (Quit: Web client closed)
-02:04	Didz	if you want to match a number ID, you'll need to use getMaterial(int)
-02:04	Didz	and for that you'll need to Integer.parse the number from the command
-02:04	Didz	so it's an integer not a string
-02:04	Didz	cause it does an entirely different lookup if you pass it a string instead of an integer
-02:04	Didz	yay method overloading
-	 * 
-	 * */
 }
